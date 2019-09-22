@@ -1,46 +1,49 @@
 #include <Arduino.h>
 #include "version.h"
 
-int IN_PIN = 14;
-int THRESH = 325;
-int BOUNCE = 150;
+#define DONATE_PIN PD2
+int TOKEN_PIN = 35;
+int DONATION_THRESHOLD = 3000;
 
-unsigned long lastStateTime = 0;
-bool touching = false;
-bool lastTouchState = false;
+volatile int donateCount = 0;
+volatile int tokenCount = 0;
 
-bool isTouching = false;
+unsigned long donation_detected_timestamp = 0;
+
+void coinDonated() {
+  donation_detected_timestamp = millis();
+}
+
+void tokenInserted() {
+  tokenCount++;
+  donation_detected_timestamp = 0;
+  Serial.print("### TOKEN: ");
+  Serial.println(tokenCount);
+}
 
 void setup() {
   Serial.begin(9600);  
-  Serial.println("Museum Hand Detector by kevinc...");
-  Serial.println(getFullVersion("museum-hands-detector"));
+  Serial.println("Museum zoltar coin detector by kevinc...");
+  Serial.println(getFullVersion("museum-zoltar-coin"));
+
+  pinMode(DONATE_PIN, INPUT_PULLUP);
+  pinMode(TOKEN_PIN, INPUT_PULLUP);
+
+  attachInterrupt(digitalPinToInterrupt(DONATE_PIN), coinDonated, RISING);
+  //attachInterrupt(digitalPinToInterrupt(TOKEN_PIN), tokenInserted, RISING);
 }
 
 // status=version:vb7e8fa7-dirty,buildDate:2009-11-10 11:09,gitDate:2019-08-06 14:51:47
 
 void loop() {
-    int total1 = analogRead(IN_PIN);
-
-    //Serial.println(total1);
-    if ((!lastTouchState && total1 > THRESH) || 
-        (lastTouchState && total1 < THRESH)) {
-      lastStateTime = millis();
-    }
-
-    if ((millis() - lastStateTime) > BOUNCE) {
-
-      if (touching && !lastTouchState) {
-        Serial.println("OFF#");
-        touching = false;
-      }
-
-      if (!touching && lastTouchState) {
-        Serial.println("ON#");
-        touching = true;
-      }
-    }
-
-    lastTouchState = total1 > THRESH;
-    delay(10);
+  // int inState = digitalRead(DONATE_PIN);
+  // Serial.println(inState);
+  // delay(100);
+  if (donation_detected_timestamp > DONATION_THRESHOLD) {
+    donateCount++;
+    donation_detected_timestamp = 0;
+    Serial.print("*** DONATE: ");
+    Serial.println(donateCount);
+    donateReported = true;
+  }
 }
