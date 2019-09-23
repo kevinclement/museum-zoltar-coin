@@ -23,26 +23,51 @@ bool led_state[3] = {false};
 
 void(* resetFunc) (void) = 0;
 
+bool triggeredRealFromFake = false;
+void realCoinInserted() {
+  if (realCount < 3) {
+    led_state[realCount] = true;
+  }
+  realCount++;
+    
+  Serial.print("### TOKEN: ");
+  Serial.println(realCount);
+  real_coin_timestamp = 0;
+}
+
 void fakeCoin() {
   Serial.println("** fake");
   fake_coin_timestamp = millis();
+
+  // if we see a fake, and haven't timed out the real coin
+  // then its inserted really fast, just trigger a real then
+  if (real_coin_timestamp > 0 && !triggeredRealFromFake) {
+    realCoinInserted();
+    triggeredRealFromFake = true;
+  }
 }
 
 void realCoin() {
   Serial.println("** real");
   real_coin_timestamp = millis();
+  Serial.print("    ");
+  Serial.println(real_coin_timestamp);
   fake_coin_timestamp = 0;
+  triggeredRealFromFake = false;
 }
 
 void setup() {
   Serial.begin(9600);
   Serial.setTimeout(10);
+  
   Serial.println("Museum zoltar coin detector by kevinc...");
   Serial.println(getFullVersion("museum-zoltar-coin"));
 
   pinMode(DONATE_PIN, INPUT_PULLUP);
   pinMode(TOKEN_PIN, INPUT_PULLUP);
   pinMode(MAIN_LIGHT_PIN, OUTPUT);
+
+  Serial.println(millis());
 
   attachInterrupt(digitalPinToInterrupt(DONATE_PIN), fakeCoin, RISING);
   attachInterrupt(digitalPinToInterrupt(TOKEN_PIN), realCoin, RISING);
@@ -96,6 +121,27 @@ void readAnySerialMessage() {
 void loop() {
   readAnySerialMessage();
 
+// back to back trace:
+// ** fake
+// ** real
+//     29677
+// ** real
+//     29677
+// ** real
+//     29678
+// ** real
+//     29679
+// ** real
+//     29679
+// ** real
+//     29679
+// ** fake
+// ** real
+//     30099
+// ** real
+//     30115
+// ### TOKEN: 1
+
   analogWrite(10, led_state[0] ? 255 : 0);
   analogWrite(11, led_state[1] ? 255 : 0);
   analogWrite(12, led_state[2] ? 255 : 0);
@@ -112,14 +158,7 @@ void loop() {
   }
 
   if (real_coin_timestamp > 0 && millis() - real_coin_timestamp > REAL_THRESHOLD) {
-    if (realCount < 3) {
-      led_state[realCount] = true;
-    }
-    realCount++;
-    
-    Serial.print("### TOKEN: ");
-    Serial.println(realCount);
-    real_coin_timestamp = 0;
+    realCoinInserted();
   }
 
   //    Serial.print("*** DONATE: ");
