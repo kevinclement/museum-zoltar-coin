@@ -5,10 +5,11 @@
 #define TOKEN_PIN PD3
 int DONATION_THRESHOLD = 3000;
 
-#define LED1_PIN PD12
-#define LED2_PIN PD11
-#define MAIN_LIGHT_PIN PD7
+#define LED1_PIN 12
+#define LED2_PIN 11
+#define LED3_PIN 10
 
+#define MAIN_LIGHT_PIN PD7
 
 volatile int donateCount = 0;
 volatile int tokenCount = 0;
@@ -89,6 +90,10 @@ void readAnySerialMessage() {
 
 void loop() {
   readAnySerialMessage();
+
+  analogWrite(10, 255);
+  analogWrite(11, 255);
+  analogWrite(12, 255);
 
   if (blink_lights) {
     if (millis() - lastTime > waitTime)  // time for a new flash
