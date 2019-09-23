@@ -3,7 +3,9 @@
 
 #define DONATE_PIN PD2
 #define TOKEN_PIN PD3
-int DONATION_THRESHOLD = 3000;
+
+unsigned int REAL_THRESHOLD = 500;
+unsigned int DONATION_THRESHOLD = 1000;
 
 #define LED1_PIN 12
 #define LED2_PIN 11
@@ -11,22 +13,25 @@ int DONATION_THRESHOLD = 3000;
 
 #define MAIN_LIGHT_PIN PD7
 
-volatile int donateCount = 0;
-volatile int tokenCount = 0;
+volatile int fakeCount = 0;
+volatile int realCount = 0;
 
-unsigned long donation_detected_timestamp = 0;
+unsigned long fake_coin_timestamp = 0;
+unsigned long real_coin_timestamp = 0;
+
+bool led_state[3] = {false};
 
 void(* resetFunc) (void) = 0;
 
-void coinDonated() {
-  donation_detected_timestamp = millis();
+void fakeCoin() {
+  Serial.println("** fake");
+  fake_coin_timestamp = millis();
 }
 
-void tokenInserted() {
-  tokenCount++;
-  donation_detected_timestamp = 0;
-  Serial.print("### TOKEN: ");
-  Serial.println(tokenCount);
+void realCoin() {
+  Serial.println("** real");
+  real_coin_timestamp = millis();
+  fake_coin_timestamp = 0;
 }
 
 void setup() {
@@ -39,8 +44,8 @@ void setup() {
   pinMode(TOKEN_PIN, INPUT_PULLUP);
   pinMode(MAIN_LIGHT_PIN, OUTPUT);
 
-  attachInterrupt(digitalPinToInterrupt(DONATE_PIN), coinDonated, RISING);
-  attachInterrupt(digitalPinToInterrupt(TOKEN_PIN), tokenInserted, RISING);
+  attachInterrupt(digitalPinToInterrupt(DONATE_PIN), fakeCoin, RISING);
+  attachInterrupt(digitalPinToInterrupt(TOKEN_PIN), realCoin, RISING);
 }
 
 // status=version:vb7e8fa7-dirty,buildDate:2009-11-10 11:09,gitDate:2019-08-06 14:51:47
@@ -91,9 +96,9 @@ void readAnySerialMessage() {
 void loop() {
   readAnySerialMessage();
 
-  analogWrite(10, 255);
-  analogWrite(11, 255);
-  analogWrite(12, 255);
+  analogWrite(10, led_state[0] ? 255 : 0);
+  analogWrite(11, led_state[1] ? 255 : 0);
+  analogWrite(12, led_state[2] ? 255 : 0);
 
   if (blink_lights) {
     if (millis() - lastTime > waitTime)  // time for a new flash
@@ -106,13 +111,17 @@ void loop() {
     analogWrite(MAIN_LIGHT_PIN, 0);
   }
 
-  // int inState = digitalRead(DONATE_PIN);
-  // Serial.println(inState);
-  // delay(100);
-  if (donation_detected_timestamp > DONATION_THRESHOLD) {
-    donateCount++;
-    donation_detected_timestamp = 0;
-    Serial.print("*** DONATE: ");
-    Serial.println(donateCount);
+  if (real_coin_timestamp > 0 && millis() - real_coin_timestamp > REAL_THRESHOLD) {
+    if (realCount < 3) {
+      led_state[realCount] = true;
+    }
+    realCount++;
+    
+    Serial.print("### TOKEN: ");
+    Serial.println(realCount);
+    real_coin_timestamp = 0;
   }
+
+  //    Serial.print("*** DONATE: ");
+    // Serial.println(donateCount);
 }
