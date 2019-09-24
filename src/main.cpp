@@ -67,8 +67,6 @@ void setup() {
   pinMode(TOKEN_PIN, INPUT_PULLUP);
   pinMode(MAIN_LIGHT_PIN, OUTPUT);
 
-  Serial.println(millis());
-
   attachInterrupt(digitalPinToInterrupt(DONATE_PIN), fakeCoin, RISING);
   attachInterrupt(digitalPinToInterrupt(TOKEN_PIN), realCoin, RISING);
 }
