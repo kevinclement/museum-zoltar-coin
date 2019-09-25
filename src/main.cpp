@@ -10,54 +10,13 @@ Lights lights;
 
 // functions
 void readAnySerialMessage();
+void fake();
+void real();
+void status();
 void(* resetFunc) (void) = 0;
 
-#define DONATE_PIN PD2
-#define TOKEN_PIN PD3
-
-unsigned int REAL_THRESHOLD = 500;
-unsigned int DONATION_THRESHOLD = 1000;
-
-#define MAIN_LIGHT_PIN PD7
-
-volatile int fakeCount = 0;
-volatile int realCount = 0;
-
-unsigned long fake_coin_timestamp = 0;
-unsigned long real_coin_timestamp = 0;
-
-bool triggeredRealFromFake = false;
-void realCoinInserted() {
-  if (realCount < 3) {
-    led.state[realCount] = true;
-  }
-  realCount++;
-    
-  Serial.print("### TOKEN: ");
-  Serial.println(realCount);
-  real_coin_timestamp = 0;
-}
-
-void fakeCoin() {
-  Serial.println("** fake");
-  fake_coin_timestamp = millis();
-
-  // if we see a fake, and haven't timed out the real coin
-  // then its inserted really fast, just trigger a real then
-  if (real_coin_timestamp > 0 && !triggeredRealFromFake) {
-    realCoinInserted();
-    triggeredRealFromFake = true;
-  }
-}
-
-void realCoin() {
-  Serial.println("** real");
-  real_coin_timestamp = millis();
-  Serial.print("    ");
-  Serial.println(real_coin_timestamp);
-  fake_coin_timestamp = 0;
-  triggeredRealFromFake = false;
-}
+// track coin count
+uint8_t coin_count = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -70,33 +29,9 @@ void setup() {
   led.setup();
   lights.setup();
 
-  pinMode(DONATE_PIN, INPUT_PULLUP);
-  pinMode(TOKEN_PIN, INPUT_PULLUP);
-  pinMode(MAIN_LIGHT_PIN, OUTPUT);
-
-  attachInterrupt(digitalPinToInterrupt(DONATE_PIN), fakeCoin, RISING);
-  attachInterrupt(digitalPinToInterrupt(TOKEN_PIN), realCoin, RISING);
+  attachInterrupt(digitalPinToInterrupt(DONATE_PIN), fake, RISING);
+  attachInterrupt(digitalPinToInterrupt(TOKEN_PIN), real, RISING);
 }
-
-// status=version:vb7e8fa7-dirty,buildDate:2009-11-10 11:09,gitDate:2019-08-06 14:51:47
-
-unsigned long light_time = millis();
-bool light_on = false;
-
-#define TIMES 7
-void flash() {
-  for (int i=0; i< random(TIMES); i++)
-  {
-    analogWrite(MAIN_LIGHT_PIN, 255);
-    delay(62);
-    analogWrite(MAIN_LIGHT_PIN, 0);
-    delay(10);
-  }
-}
-
-unsigned long lastTime = 0;
-int waitTime = 1500;
-bool blink_lights = false;
 
 void loop() {
   readAnySerialMessage();
@@ -105,44 +40,13 @@ void loop() {
   led.handle();
   lights.handle();
 
-// back to back trace:
-// ** fake
-// ** real
-//     29677
-// ** real
-//     29677
-// ** real
-//     29678
-// ** real
-//     29679
-// ** real
-//     29679
-// ** real
-//     29679
-// ** fake
-// ** real
-//     30099
-// ** real
-//     30115
-// ### TOKEN: 1
+  if (coin.count != coin_count) {
 
-  if (blink_lights) {
-    if (millis() - lastTime > waitTime)  // time for a new flash
-    {
-        // adjust timing params
-        flash();
-        lastTime = millis();
-    }
-  } else {
-    analogWrite(MAIN_LIGHT_PIN, 0);
   }
+}
 
-  if (real_coin_timestamp > 0 && millis() - real_coin_timestamp > REAL_THRESHOLD) {
-    realCoinInserted();
-  }
-
-  //    Serial.print("*** DONATE: ");
-    // Serial.println(donateCount);
+void status() {
+  // status=version:vb7e8fa7-dirty,buildDate:2009-11-10 11:09,gitDate:2019-08-06 14:51:47
 }
 
 void readAnySerialMessage() {
@@ -157,7 +61,7 @@ void readAnySerialMessage() {
 
   if (msg == "lights" || msg == "l") {
     Serial.println("toggling blinking lights...");
-    blink_lights = !blink_lights;
+    // blink_lights = !blink_lights;
   }
   else if (msg == "solve" || msg == "v") {
   }
@@ -167,4 +71,13 @@ void readAnySerialMessage() {
     Serial.print("unknown command: ");
     Serial.println(msg);
   }
+}
+
+// I dont want to figure out static callers and such to get this working
+// in class world with attachinterupt, so just calling instance
+void fake() {
+  coin.fake();
+}
+void real() {
+  coin.real();
 }
