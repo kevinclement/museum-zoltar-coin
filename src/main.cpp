@@ -30,6 +30,8 @@ void setup() {
   led.setup();
   lights.setup();
 
+  status();
+
   attachInterrupt(digitalPinToInterrupt(DONATE_PIN), fake, RISING);
   attachInterrupt(digitalPinToInterrupt(TOKEN_PIN), real, RISING);
 }
@@ -56,7 +58,11 @@ void loop() {
 }
 
 void status() {
-  // status=version:vb7e8fa7-dirty,buildDate:2009-11-10 11:09,gitDate:2019-08-06 14:51:47
+  char cMsg[254];
+  sprintf(cMsg, "status=version:%s,gitDate:%s,buildDate:%s", GIT_HASH, GIT_DATE, DATE_NOW);
+
+  Serial.println(cMsg);
+  // 
 }
 
 void readAnySerialMessage() {
