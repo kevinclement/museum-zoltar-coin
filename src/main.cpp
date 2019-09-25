@@ -98,13 +98,6 @@ void coinChange() {
     led.state[i] = i < coin_count;
   }
 
-  Serial.print("state: ");
-  Serial.print(led.state[0]);
-  Serial.print(",");
-  Serial.print(led.state[1]);
-  Serial.print(",");
-  Serial.print(led.state[2]);
-
   if (coin_count == 3) {
     solved();
   }
