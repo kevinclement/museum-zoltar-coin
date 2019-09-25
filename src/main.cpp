@@ -1,5 +1,10 @@
 #include <Arduino.h>
 #include "version.h"
+#include "coin.h"
+#include "led.h"
+
+Coin coin;
+LED led;
 
 #define DONATE_PIN PD2
 #define TOKEN_PIN PD3
@@ -63,6 +68,9 @@ void setup() {
   Serial.println("Museum zoltar coin detector by kevinc...");
   Serial.println(getFullVersion("museum-zoltar-coin"));
 
+  coin.setup();
+  led.setup();
+
   pinMode(DONATE_PIN, INPUT_PULLUP);
   pinMode(TOKEN_PIN, INPUT_PULLUP);
   pinMode(MAIN_LIGHT_PIN, OUTPUT);
@@ -118,6 +126,9 @@ void readAnySerialMessage() {
 
 void loop() {
   readAnySerialMessage();
+
+  coin.handle();
+  led.handle();
 
 // back to back trace:
 // ** fake
