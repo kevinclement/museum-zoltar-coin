@@ -8,5 +8,7 @@ class LED {
     void setup();
     void handle();
 
+    bool state[3] = {false};
+
   private:
 };

@@ -8,17 +8,15 @@ Coin coin;
 LED led;
 Lights lights;
 
+// functions
 void readAnySerialMessage();
+void(* resetFunc) (void) = 0;
 
 #define DONATE_PIN PD2
 #define TOKEN_PIN PD3
 
 unsigned int REAL_THRESHOLD = 500;
 unsigned int DONATION_THRESHOLD = 1000;
-
-#define LED1_PIN 12
-#define LED2_PIN 11
-#define LED3_PIN 10
 
 #define MAIN_LIGHT_PIN PD7
 
@@ -28,14 +26,10 @@ volatile int realCount = 0;
 unsigned long fake_coin_timestamp = 0;
 unsigned long real_coin_timestamp = 0;
 
-bool led_state[3] = {false};
-
-void(* resetFunc) (void) = 0;
-
 bool triggeredRealFromFake = false;
 void realCoinInserted() {
   if (realCount < 3) {
-    led_state[realCount] = true;
+    led.state[realCount] = true;
   }
   realCount++;
     
@@ -131,10 +125,6 @@ void loop() {
 // ** real
 //     30115
 // ### TOKEN: 1
-
-  analogWrite(10, led_state[0] ? 255 : 0);
-  analogWrite(11, led_state[1] ? 255 : 0);
-  analogWrite(12, led_state[2] ? 255 : 0);
 
   if (blink_lights) {
     if (millis() - lastTime > waitTime)  // time for a new flash
