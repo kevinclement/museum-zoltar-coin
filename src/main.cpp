@@ -13,11 +13,14 @@ void readAnySerialMessage();
 void fake();
 void real();
 void status();
+void solved();
 void(* resetFunc) (void) = 0;
 
 // track coin count
 unsigned int coin_count = 0;
 unsigned int donation_count = 0;
+
+bool _solved = false;
 
 void setup() {
   Serial.begin(9600);
@@ -52,20 +55,43 @@ void loop() {
       led.state[coin_count] = true;
     }
     coin_count = coin.count;
+
+    if (coin_count == 3) {
+      solved();
+    }
+
+    status();
   }
   
   if (coin.donations != donation_count) {
     Serial.println("donation detected.");
     donation_count = coin.donations;
+    status();
   }
+}
+
+void solved() {
+  _solved = true;
 }
 
 void status() {
   char cMsg[254];
-  sprintf(cMsg, "status=version:%s,gitDate:%s,buildDate:%s", GIT_HASH, GIT_DATE, DATE_NOW);
+  sprintf(cMsg, 
+    "status="
+      "version:%s,"
+      "gitDate:%s,"
+      "buildDate:%s,"
+      "solved:%s,"
+      "coins:%d,"
+      "donations:%d"
+    , GIT_HASH,
+      GIT_DATE,
+      DATE_NOW,
+      _solved ? "true" : "false",
+      coin_count,
+      donation_count);
 
   Serial.println(cMsg);
-  // 
 }
 
 void readAnySerialMessage() {
