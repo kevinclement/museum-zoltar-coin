@@ -8,6 +8,8 @@ Coin coin;
 LED led;
 Lights lights;
 
+void readAnySerialMessage();
+
 #define DONATE_PIN PD2
 #define TOKEN_PIN PD3
 
@@ -102,31 +104,6 @@ unsigned long lastTime = 0;
 int waitTime = 1500;
 bool blink_lights = false;
 
-void readAnySerialMessage() {
-  if (!Serial.available()) {
-    return;
-  }
-
-  // read and handle message from serial
-  String msg = Serial.readStringUntil('\n');
-  Serial.print("got '");
-  Serial.print(msg);
-  Serial.println("' command");
-
-  if (msg == "lights" || msg == "l") {
-    Serial.println("toggling blinking lights...");
-    blink_lights = !blink_lights;
-  }
-  else if (msg == "solve" || msg == "v") {
-  }
-  else if (msg == "reset" || msg == "reboot" || msg == "r") {
-    resetFunc();
-  } else {
-    Serial.print("unknown command: ");
-    Serial.println(msg);
-  }
-}
-
 void loop() {
   readAnySerialMessage();
 
@@ -176,4 +153,28 @@ void loop() {
 
   //    Serial.print("*** DONATE: ");
     // Serial.println(donateCount);
+}
+
+void readAnySerialMessage() {
+  if (!Serial.available()) {
+    return;
+  }
+
+  String msg = Serial.readStringUntil('\n');
+  Serial.print("got '");
+  Serial.print(msg);
+  Serial.println("' command");
+
+  if (msg == "lights" || msg == "l") {
+    Serial.println("toggling blinking lights...");
+    blink_lights = !blink_lights;
+  }
+  else if (msg == "solve" || msg == "v") {
+  }
+  else if (msg == "reset" || msg == "reboot" || msg == "r") {
+    resetFunc();
+  } else {
+    Serial.print("unknown command: ");
+    Serial.println(msg);
+  }
 }
