@@ -14,6 +14,10 @@ class Coin {
     void fake();
     void real();
 
+    void increment();
+    void decrement();
+    void solve();
+
     unsigned int count = 0;
     unsigned int donations = 0;
 

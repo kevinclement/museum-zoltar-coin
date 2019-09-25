@@ -14,6 +14,8 @@ void fake();
 void real();
 void status();
 void solved();
+void coinChange();
+void mock();
 void(* resetFunc) (void) = 0;
 
 // track coin count
@@ -21,6 +23,7 @@ unsigned int coin_count = 0;
 unsigned int donation_count = 0;
 
 bool _solved = false;
+bool _mock = false;
 
 void setup() {
   Serial.begin(9600);
@@ -47,19 +50,7 @@ void loop() {
   lights.handle();
 
   if (coin.count != coin_count) {
-    Serial.print("token detected (");
-    Serial.print(coin.count);
-    Serial.println(").  changing led.");
-
-    if (coin_count < 3) {
-      led.state[coin_count] = true;
-    }
-    coin_count = coin.count;
-
-    if (coin_count == 3) {
-      solved();
-    }
-
+    coinChange();
     status();
   }
   
@@ -68,6 +59,8 @@ void loop() {
     donation_count = coin.donations;
     status();
   }
+
+  mock();
 }
 
 void solved() {
@@ -94,6 +87,29 @@ void status() {
   Serial.println(cMsg);
 }
 
+void coinChange() {
+  Serial.print("token detected (");
+  Serial.print(coin.count);
+  Serial.println(").");
+
+  coin_count = coin.count;
+
+  for (unsigned int i=0;i<3;i++) {
+    led.state[i] = i < coin_count;
+  }
+
+  Serial.print("state: ");
+  Serial.print(led.state[0]);
+  Serial.print(",");
+  Serial.print(led.state[1]);
+  Serial.print(",");
+  Serial.print(led.state[2]);
+
+  if (coin_count == 3) {
+    solved();
+  }
+}
+
 void readAnySerialMessage() {
   if (!Serial.available()) {
     return;
@@ -108,13 +124,38 @@ void readAnySerialMessage() {
     Serial.println("toggling blinking lights...");
     // blink_lights = !blink_lights;
   }
+  else if (msg == "increment" || msg == "i") {
+    Serial.println("manually incrementing coin count...");
+    coin.increment();
+  }
+  else if (msg == "decrement" || msg == "d") {
+    Serial.println("manually decrementing coin count...");
+    coin.decrement();
+  }
   else if (msg == "solve" || msg == "v") {
+    coin.solve();
+  }
+  else if (msg == "mock" || msg == "m") {
+    _mock = !_mock;
   }
   else if (msg == "reset" || msg == "reboot" || msg == "r") {
     resetFunc();
   } else {
     Serial.print("unknown command: ");
     Serial.println(msg);
+  }
+}
+
+void mock() {
+  static int mocktime = millis();
+  if (_mock && mocktime > 0 && millis() - mocktime > 3000) {
+    coin.real();
+
+    if (coin_count < 2) {
+      mocktime = millis();
+    } else {
+      mocktime = 0;
+    }
   }
 }
 

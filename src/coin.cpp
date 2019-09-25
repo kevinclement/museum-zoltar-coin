@@ -51,6 +51,22 @@ void Coin::real() {
   triggered_token = false;
 }
 
+void Coin::increment() {
+  count++;
+}
+
+void Coin::decrement() {
+  if (count > 0) {
+    count--;
+  } else {
+    Serial.println("WARN: count was at zero.  not decrementing further.");
+  }
+}
+
+void Coin::solve() {
+  count = 3;
+}
+
 void Coin::token() {
   count++;
   real_coin_timestamp = 0;
