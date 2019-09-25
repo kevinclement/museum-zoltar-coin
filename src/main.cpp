@@ -44,7 +44,10 @@ void loop() {
   lights.handle();
 
   if (coin.count != coin_count) {
-    Serial.println("token detected.  changing led.");
+    Serial.print("token detected (");
+    Serial.print(coin.count);
+    Serial.println(").  changing led.");
+
     if (coin_count < 3) {
       led.state[coin_count] = true;
     }
