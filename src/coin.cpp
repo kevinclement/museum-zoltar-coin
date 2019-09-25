@@ -25,13 +25,15 @@ void Coin::handle() {
 
   if (fake_coin_timestamp > 0 && millis() - fake_coin_timestamp > DONATION_THRESHOLD) {
     donations++;
-    Serial.print("*** DONATE: ");
-    Serial.println(donations);
+    fake_coin_timestamp = 0;
+
+    //Serial.print("### DONATE: ");
+    //Serial.println(donations);
   }
 }
 
 void Coin::fake() {
-  Serial.println("** fake");
+  // Serial.println("** fake");
   fake_coin_timestamp = millis();
 
   // if we see a fake, and haven't timed out the real coin
@@ -43,39 +45,16 @@ void Coin::fake() {
 }
 
 void Coin::real() {
-  Serial.println("** real");
+  // Serial.println("** real");
   real_coin_timestamp = millis();
-  Serial.print("    ");
-  Serial.println(real_coin_timestamp);
   fake_coin_timestamp = 0;
   triggered_token = false;
 }
 
 void Coin::token() {
   count++;
-  Serial.print("### TOKEN: ");
-  Serial.println(count);
   real_coin_timestamp = 0;
+
+  // Serial.print("### TOKEN: ");
+  // Serial.println(count);
 }
-
-
-// back to back trace:
-// ** fake
-// ** real
-//     29677
-// ** real
-//     29677
-// ** real
-//     29678
-// ** real
-//     29679
-// ** real
-//     29679
-// ** real
-//     29679
-// ** fake
-// ** real
-//     30099
-// ** real
-//     30115
-// ### TOKEN: 1
