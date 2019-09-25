@@ -16,7 +16,8 @@ void status();
 void(* resetFunc) (void) = 0;
 
 // track coin count
-uint8_t coin_count = 0;
+unsigned int coin_count = 0;
+unsigned int donation_count = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -41,7 +42,16 @@ void loop() {
   lights.handle();
 
   if (coin.count != coin_count) {
-
+    Serial.println("token detected.  changing led.");
+    if (coin_count < 3) {
+      led.state[coin_count] = true;
+    }
+    coin_count = coin.count;
+  }
+  
+  if (coin.donations != donation_count) {
+    Serial.println("donation detected.");
+    donation_count = coin.donations;
   }
 }
 
