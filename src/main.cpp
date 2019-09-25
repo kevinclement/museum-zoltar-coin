@@ -92,6 +92,11 @@ void coinChange() {
   Serial.print(coin.count);
   Serial.println(").");
 
+  // trigger light flash if this was an increment
+  if (coin_count < coin.count) {
+    lights.trigger();
+  }
+
   coin_count = coin.count;
 
   for (unsigned int i=0;i<3;i++) {
@@ -114,8 +119,8 @@ void readAnySerialMessage() {
   Serial.println("' command");
 
   if (msg == "lights" || msg == "l") {
-    Serial.println("toggling blinking lights...");
-    // blink_lights = !blink_lights;
+    Serial.println("manually triggering lights...");
+    lights.trigger();
   }
   else if (msg == "increment" || msg == "i") {
     Serial.println("manually incrementing coin count...");
