@@ -2,9 +2,11 @@
 #include "version.h"
 #include "coin.h"
 #include "led.h"
+#include "lights.h"
 
 Coin coin;
 LED led;
+Lights lights;
 
 #define DONATE_PIN PD2
 #define TOKEN_PIN PD3
@@ -70,6 +72,7 @@ void setup() {
 
   coin.setup();
   led.setup();
+  lights.setup();
 
   pinMode(DONATE_PIN, INPUT_PULLUP);
   pinMode(TOKEN_PIN, INPUT_PULLUP);
@@ -129,6 +132,7 @@ void loop() {
 
   coin.handle();
   led.handle();
+  lights.handle();
 
 // back to back trace:
 // ** fake
