@@ -22,7 +22,7 @@ void(* resetFunc) (void) = 0;
 unsigned int coin_count = 0;
 unsigned int donation_count = 0;
 
-bool _solved = false;
+unsigned long _solved_at = 0;
 bool _mock = false;
 
 void setup() {
@@ -64,7 +64,8 @@ void loop() {
 }
 
 void solved() {
-  _solved = true;
+  _solved_at = millis();
+  lights.trigger();
 }
 
 void status() {
@@ -80,7 +81,7 @@ void status() {
     , GIT_HASH,
       GIT_DATE,
       DATE_NOW,
-      _solved ? "true" : "false",
+      _solved_at > 0 ? "true" : "false",
       coin_count,
       donation_count);
 
@@ -91,11 +92,6 @@ void coinChange() {
   Serial.print("token detected (");
   Serial.print(coin.count);
   Serial.println(").");
-
-  // trigger light flash if this was an increment
-  if (coin_count < coin.count) {
-    lights.trigger();
-  }
 
   coin_count = coin.count;
 

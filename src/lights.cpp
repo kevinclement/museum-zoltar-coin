@@ -3,6 +3,8 @@
 
 #define MAIN_LIGHT_PIN PD7
 
+#define TOTAL_TIME_TO_RUN 12000
+
 #define TIME_BETWEEN_FLASHES_L 600
 #define TIME_BETWEEN_FLASHES_H 900
 
@@ -13,6 +15,7 @@
 
 bool _enabled = false;
 unsigned long light_timestamp = 0;
+unsigned long _triggered_at = 0;
 int lastLoop = 0;
 
 Lights::Lights()
@@ -25,6 +28,11 @@ void Lights::setup() {
 }
 
 void Lights::handle() {
+  if (_enabled && _triggered_at > 0 && millis() - _triggered_at > TOTAL_TIME_TO_RUN) {
+    Serial.println("turning off lights due to timeout.");
+    _enabled = false;
+  }
+
   if (_enabled) {
     if (light_timestamp == 0 || millis() - light_timestamp > waitTime) {
       int loops = random(1,5);
@@ -56,4 +64,5 @@ void Lights::handle() {
 void Lights::trigger() {
   Serial.println("triggering lights.");
   _enabled = !_enabled;
+  _triggered_at = millis();
 }

@@ -13,5 +13,5 @@ class Lights {
 
   private:
 
-    int waitTime;
+    unsigned int waitTime;
 };
