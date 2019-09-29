@@ -12,4 +12,6 @@ class Lights {
     void trigger();
 
   private:
+
+    int waitTime;
 };

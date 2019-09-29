@@ -3,7 +3,17 @@
 
 #define MAIN_LIGHT_PIN PD7
 
+#define TIME_BETWEEN_FLASHES_L 600
+#define TIME_BETWEEN_FLASHES_H 900
+
+#define TIME_LIGHT_ON_L 20
+#define TIME_LIGHT_ON_H 70
+#define TIME_LIGHT_OFF_L 20
+#define TIME_LIGHT_OFF_H 40
+
 bool _enabled = false;
+unsigned long light_timestamp = 0;
+int lastLoop = 0;
 
 Lights::Lights()
 {  
@@ -11,18 +21,33 @@ Lights::Lights()
 
 void Lights::setup() {
   pinMode(MAIN_LIGHT_PIN, OUTPUT);
+  waitTime = random(TIME_BETWEEN_FLASHES_L, TIME_BETWEEN_FLASHES_H);
 }
 
 void Lights::handle() {
   if (_enabled) {
-    for (int i=0; i< random(7); i++)
-    {
-      analogWrite(MAIN_LIGHT_PIN, 255);
-      delay(62);
+    if (light_timestamp == 0 || millis() - light_timestamp > waitTime) {
+      int loops = random(1,5);
+
+      while(loops == lastLoop) {
+        loops = random(1,5);
+      }
+      lastLoop = loops;
+
+      for (int i=0; i < loops; i++)
+      {
+        analogWrite(MAIN_LIGHT_PIN, 255);
+        delay(random(TIME_LIGHT_ON_L, TIME_LIGHT_ON_H));
+        analogWrite(MAIN_LIGHT_PIN, 0);
+        delay(random(TIME_LIGHT_OFF_L, TIME_LIGHT_OFF_H));
+      }
+
+      light_timestamp = millis();
+      waitTime = random(TIME_BETWEEN_FLASHES_L, TIME_BETWEEN_FLASHES_H);
+    } else {
       analogWrite(MAIN_LIGHT_PIN, 0);
-      delay(10);
     }
-    _enabled = false;
+
   } else {
     analogWrite(MAIN_LIGHT_PIN, 0);
   }
@@ -30,5 +55,5 @@ void Lights::handle() {
 
 void Lights::trigger() {
   Serial.println("triggering lights.");
-  _enabled = true;
+  _enabled = !_enabled;
 }
