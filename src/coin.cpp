@@ -3,9 +3,11 @@
 
 unsigned int REAL_THRESHOLD = 500;
 unsigned int DONATION_THRESHOLD = 1000;
+unsigned int LAST_COIN_THRESHOLD = 1500;
 
 unsigned long fake_coin_timestamp = 0;
 unsigned long real_coin_timestamp = 0;
+unsigned long last_coin_detected = 0;
 
 bool triggered_token = false;
 
@@ -39,16 +41,25 @@ void Coin::fake() {
   // if we see a fake, and haven't timed out the real coin
   // then its inserted really fast, just trigger a real then
   if (real_coin_timestamp > 0 && !triggered_token) {
-     token();
-     triggered_token = true;
+    Serial.println("INFO: noticed a fake coin but haven't triggered the real one yet, must be fast.");
+    token();
+    triggered_token = true;
   }
 }
 
 void Coin::real() {
-  // Serial.println("** real");
-  real_coin_timestamp = millis();
+  // need to reset these in case we ignore further triggers, we don't want to trigger a donation
   fake_coin_timestamp = 0;
   triggered_token = false;
+
+  if (last_coin_detected > 0) {
+    if (millis() - last_coin_detected < LAST_COIN_THRESHOLD) {
+      Serial.println("INFO: detected real coin too soon.  Ignoring that trigger.");
+      return;
+    }
+  }
+
+  real_coin_timestamp = millis();
 }
 
 void Coin::increment() {
@@ -70,6 +81,7 @@ void Coin::solve() {
 void Coin::token() {
   count++;
   real_coin_timestamp = 0;
+  last_coin_detected = millis();
 
   // Serial.print("### TOKEN: ");
   // Serial.println(count);
